@@ -1,46 +1,45 @@
-# Step 1: Use an official PHP base image with required extensions for Laravel
-FROM php:8.2-fpm
+# Use the official PHP 8.2 image with Apache
+FROM php:8.2-apache
 
-# Step 2: Install system dependencies and PHP extensions required for Laravel
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    locales \
+# Update package list and install dependencies
+RUN apt-get update --fix-missing \
+    && apt-get install -y \
     zip \
-    jpegoptim optipng pngquant gifsicle \
-    vim \
     unzip \
-    git \
-    curl \
-    libonig-dev \
-    libzip-dev \
-    nodejs \
-    npm \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo mbstring gd zip
+    libpq-dev \
+    && docker-php-ext-install pdo pdo_mysql pdo_pgsql
 
-# Step 3: Install Composer globally
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Enable Apache mod_rewrite
+RUN a2enmod rewrite
 
-# Step 4: Set working directory
-WORKDIR /var/www/html
+# Install Composer globally
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Step 5: Copy existing application directory contents to the container working directory
-COPY . /var/www/html
+# Copy application source code to the container
+COPY . /var/www/html/
+WORKDIR /var/www/html/
 
-# Step 6: Install PHP dependencies using Composer
-RUN composer install --no-dev --optimize-autoloader
+# Copy Apache configuration file
+COPY default.conf /etc/apache2/sites-available/000-default.conf
 
-# Step 7: Install Node.js dependencies and build assets (e.g., with Laravel Mix)
-RUN npm install && npm run prod
+# Copy example environment file and set it as the active .env
+COPY .env.example .env
 
-# Step 8: Set proper permissions for Laravel (especially for storage and bootstrap cache)
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 /var/www/html/storage \
-    && chmod -R 775 /var/www/html/bootstrap/cache
+# Set environment variable to allow Composer to run as superuser
+ENV COMPOSER_ALLOW_SUPERUSER=1
 
-# Step 9: Expose port 9000 and start PHP-FPM process
-EXPOSE 9000
-CMD ["php-fpm"]
+# Install PHP dependencies using Composer
+RUN composer install --prefer-dist --no-dev --optimize-autoloader --no-interaction
+
+# Set the correct ownership and permissions for Laravel
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Generate the Laravel application key
+RUN php artisan key:generate
+
+# # Expose port 80
+# EXPOSE 80
+
+# # Start Apache in the foreground
+# CMD ["apache2-foreground"]

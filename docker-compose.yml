@@ -1,5 +1,4 @@
-version: "3.8"
-
+# version: "3.8"
 services:
     app:
         build:
@@ -18,9 +17,9 @@ services:
         container_name: nginx_web
         volumes:
             - .:/var/www/html
-            - ./docker/nginx/conf.d:/etc/nginx/conf.d
+            - ./php/apache/000-default.conf:/etc/apache2/sites-available/000-default.conf # Custom Apache config
         ports:
-            - "80:80"
+            - "8000:80"
         networks:
             - app-network
         depends_on:
@@ -37,6 +36,8 @@ services:
             - ./pgdata:/var/lib/postgresql/data
         ports:
             - "5432:5432"
+        networks:
+            - app-network
 
 networks:
     app-network:
