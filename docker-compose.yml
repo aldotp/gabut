@@ -1,5 +1,31 @@
-# version: '3.8'
+version: "3.8"
+
 services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: laravel_app
+        volumes:
+            - .:/var/www/html
+        networks:
+            - app-network
+        depends_on:
+            - db
+
+    web:
+        image: nginx:alpine
+        container_name: nginx_web
+        volumes:
+            - .:/var/www/html
+            - ./docker/nginx/conf.d:/etc/nginx/conf.d
+        ports:
+            - "80:80"
+        networks:
+            - app-network
+        depends_on:
+            - app
+
     db:
         image: postgres:13
         container_name: postgres_db
@@ -11,3 +37,7 @@ services:
             - ./pgdata:/var/lib/postgresql/data
         ports:
             - "5432:5432"
+
+networks:
+    app-network:
+        driver: bridge

@@ -1,0 +1,13 @@
+# version: '3.8'
+services:
+    db:
+        image: postgres:13
+        container_name: postgres_db
+        environment:
+            POSTGRES_USER: laravel
+            POSTGRES_PASSWORD: laravel_password
+            POSTGRES_DB: laravel_db
+        volumes:
+            - ./pgdata:/var/lib/postgresql/data
+        ports:
+            - "5432:5432"
