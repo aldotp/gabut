@@ -1,29 +1,29 @@
 # version: "3.8"
 services:
-    app:
-        build:
-            context: .
-            dockerfile: Dockerfile
-        container_name: laravel_app
-        volumes:
-            - .:/var/www/html
-        networks:
-            - app-network
-        depends_on:
-            - db
+    # app:
+    #     build:
+    #         context: .
+    #         dockerfile: Dockerfile
+    #     container_name: laravel_app
+    #     volumes:
+    #         - .:/var/www/html
+    #     networks:
+    #         - app-network
+    #     depends_on:
+    #         - db
 
-    web:
-        image: nginx:alpine
-        container_name: nginx_web
-        volumes:
-            - .:/var/www/html
-            - ./php/apache/000-default.conf:/etc/apache2/sites-available/000-default.conf # Custom Apache config
-        ports:
-            - "8000:80"
-        networks:
-            - app-network
-        depends_on:
-            - app
+    # web:
+    #     image: nginx:alpine
+    #     container_name: nginx_web
+    #     volumes:
+    #         - .:/var/www/html
+    #         - ./php/apache/000-default.conf:/etc/apache2/sites-available/000-default.conf # Custom Apache config
+    #     ports:
+    #         - "8000:80"
+    #     networks:
+    #         - app-network
+    #     depends_on:
+    #         - app
 
     db:
         image: postgres:13
